@@ -4,9 +4,9 @@ services:
   mariadb:
     build: ./requirements/mariadb
     container_name: mariadb
-    env_file: ./srcs/.env
-    volumes:
-      - /home/bruno/data/db:/var/lib/mysql
+    env_file: .env
+    volumes: []
+      #- /home/bruno/data/db:/var/lib/mysql
     networks:
       - inception
     restart: always
@@ -14,19 +14,20 @@ services:
   wordpress:
     build: ./requirements/wordpress
     container_name: wordpress
-    env_file: ./srcs/.env
+    env_file: .env
     volumes:
-      - /home/bruno/data/wp:/var/www/html
+      - wp_files:/var/www/html
     depends_on:
       - mariadb
     networks:
       - inception
     restart: always
+    command: ["setup-wordpress.sh", "php-fpm7.4", "-F"]
 
   nginx:
     build: ./requirements/nginx
     container_name: nginx
-    env_file: ./srcs/.env
+    env_file: .env
     ports:
       - "443:443"
     volumes:
@@ -40,6 +41,7 @@ services:
 
 volumes:
   ssl_certs:
+  wp_files:
 
 networks:
   inception:

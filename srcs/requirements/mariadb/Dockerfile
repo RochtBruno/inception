@@ -16,4 +16,4 @@ RUN chmod +x /docker-entrypoint-initdb.d/init-db.sh
 EXPOSE 3306
 
 # Comando padrão do container
-CMD ["mysqld_safe"]
+CMD bash -c "/docker-entrypoint-initdb.d/init-db.sh & exec mysqld_safe"
