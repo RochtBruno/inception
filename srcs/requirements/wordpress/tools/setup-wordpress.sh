@@ -46,6 +46,8 @@ if [ ! -f wp-config.php ]; then
     wp user create "${WP_USER}" "${WP_USER_EMAIL}" \
         --user_pass="${WP_USER_PASSWORD}" \
         --allow-root
+
+    wp theme install twentytwentyfour --activate --allow-root
 fi
 
 exec "$@"

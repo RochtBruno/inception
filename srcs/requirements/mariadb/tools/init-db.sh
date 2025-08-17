@@ -1,14 +1,27 @@
 #!/bin/bash
-set -e
+# set -e
 
-# Inicia o serviço MariaDB temporariamente
-service mariadb start
+# # Inicializa o MariaDB temporariamente em background
+# mysqld_safe --skip-networking &
+# pid="$!"
 
-# Cria banco e usuário usando variáveis do .env
-mysql -u root -e "CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE};"
-mysql -u root -e "DROP USER IF EXISTS '${MYSQL_USER}'@'localhost';"
-mysql -u root -e "DROP USER IF EXISTS '${MYSQL_USER}'@'%';"
-mysql -u root -e "CREATE USER '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';"
-mysql -u root -e "GRANT ALL PRIVILEGES ON ${MYSQL_DATABASE}.* TO '${MYSQL_USER}'@'%';"
-mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';"
-mysql -u root -e "FLUSH PRIVILEGES;"
+# # Espera o MariaDB estar pronto
+# until mysqladmin ping --silent; do
+#     echo "Aguardando o MariaDB iniciar..."
+#     sleep 2
+# done
+
+touch init.sql
+
+cat << EOF >> init.sql
+CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE};
+DROP USER IF EXISTS '${MYSQL_USER}'@'%';
+CREATE USER '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';
+GRANT ALL PRIVILEGES ON ${MYSQL_DATABASE}.* TO '${MYSQL_USER}'@'%';
+ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWORD}';
+FLUSH PRIVILEGES;
+EOF
+
+mv init.sql /etc/mysql
+
+exec mysqld_safe 
