@@ -1,20 +1,26 @@
-FROM debian:bullseye
+FROM alpine:3.20.2
 
-# Atualiza pacotes e instala MariaDB
-RUN apt-get update && apt-get install -y mariadb-server && rm -rf /var/lib/apt/lists/*
+ARG DB_NAME \
+    DB_USER \
+    DB_PASS
 
-# Copia configuração personalizada do MariaDB
-COPY conf/50-server.cnf /etc/mysql/mariadb.conf.d/
+RUN apk update && apk add --no-cache mariadb mariadb-client
 
-# Copia script de inicialização
-COPY tools/init-db.sh /docker-entrypoint-initdb.d/
+RUN mkdir /var/run/mysqld; \
+    chmod 777 /var/run/mysqld; \
+    { echo '[mysqld]'; \
+      echo 'skip-host-cache'; \
+      echo 'skip-name-resolve'; \
+      echo 'bind-address=0.0.0.0'; \
+    } | tee  /etc/my.cnf.d/docker.cnf; \
+    sed -i "s|skip-networking|skip-networking=0|g" \
+      /etc/my.cnf.d/mariadb-server.cnf
 
-# Dá permissão ao script
-RUN chmod +x /docker-entrypoint-initdb.d/init-db.sh
+RUN mysql_install_db --user=mysql --datadir=/var/lib/mysql
 
-# Expõe porta do MySQL
 EXPOSE 3306
 
-# Comando padrão do container
-ENTRYPOINT ["/docker-entrypoint-initdb.d/init-db.sh"]
-
+COPY requirements/mariadb/conf/create_db.sh .
+RUN sh create_db.sh && rm create_db.sh
+USER mysql
+CMD ["/usr/bin/mysqld", "--skip-log-error"]

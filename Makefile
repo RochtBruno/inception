@@ -1,15 +1,29 @@
-NAME=inception
+name = inception
 
-up:
-	docker-compose -f srcs/docker-compose.yml --env-file srcs/.env up -d
+.DEFAULT_GOAL = all
+ 
+env:
+	./make_env.sh
+
+all:
+	@bash srcs/requirements/mariadb/tools/make_db_dirs.sh
+	@docker compose -f ./srcs/docker-compose.yml up -d --build
 
 build:
-	docker-compose -f srcs/docker-compose.yml --env-file srcs/.env build
+	@bash srcs/requirements/mariadb/tools/make_db_dirs.sh
+	@docker compose -f ./srcs/docker-compose.yml build
 
 down:
-	docker-compose -f srcs/docker-compose.yml --env-file srcs/.env down
+	@docker compose -f ./srcs/docker-compose.yml down
 
-clean:
-	docker-compose -f srcs/docker-compose.yml --env-file srcs/.env down -v
+clean: down
+	@printf "Cleaning  ${name}...\n"
+	@docker compose -f ./srcs/docker-compose.yml down --volumes --rmi local
+	@sudo rm -rf ~/data
 
-re: clean build up
+fclean: down
+	@printf "Clean of all docker configs\n"
+	@docker system prune --all
+	@sudo rm -rf ~/data
+ 
+.PHONY : all build down clean fclean info env

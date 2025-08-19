@@ -1,5 +1,7 @@
-FROM nginx:1.25-alpine
+FROM alpine:3.20.2
 
-# Copia arquivos de configuração
-COPY ./conf/nginx.conf /etc/nginx/nginx.conf
-COPY ./tools/ssl /etc/nginx/ssl
+RUN apk update && apk upgrade && apk add --no-cache nginx
+
+EXPOSE 443
+
+CMD ["nginx", "-g", "daemon off;"]
