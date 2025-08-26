@@ -3,7 +3,7 @@ FROM alpine:3.20.2
 ARG PHP_VERSION=83 \
     DB_NAME \
     DB_USER \
-    DB_PASS \ 
+    DB_PASS \
     DB_HOST \
     ADM_WP_NAME \
     ADM_WP_PASS \
